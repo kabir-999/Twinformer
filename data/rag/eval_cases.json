@@ -1,0 +1,42 @@
+[
+ {
+  "question": "What is Green Data Science?",
+  "document": "Sem 7/GDS/Ch1/Ch1.pptx",
+  "must_contain": "minimizing environmental impact and maximizing resource efficiency"
+ },
+ {
+  "question": "Why does structured pruning give real speedups on any accelerator?",
+  "document": "Sem 7/GDS/Ch3/ch3part1.pptx",
+  "must_contain": "output stays dense"
+ },
+ {
+  "question": "Which teacher and student models are used to explain knowledge distillation?",
+  "document": "Sem 7/GDS/Ch3/ch3part1.pptx",
+  "must_contain": "DistilBERT"
+ },
+ {
+  "question": "How does carbon-aware scheduling reduce emissions?",
+  "document": "Sem 7/GDS/Ch5/ch5.pptx",
+  "must_contain": "Move a non-urgent workload to a cleaner window"
+ },
+ {
+  "question": "What does DVFS adjust?",
+  "document": "Sem 7/GDS/Ch5/ch5.pptx",
+  "must_contain": "Dynamic Voltage and Frequency Scaling"
+ },
+ {
+  "question": "What should energy-proportional computing look like?",
+  "document": "Sem 7/GDS/Ch5/ch5.pptx",
+  "must_contain": "Power should track the work being done"
+ },
+ {
+  "question": "How much of the VARC section is Reading Comprehension?",
+  "document": "MBA/CAT 2025 Syllabus PDF.pdf",
+  "must_contain": "approximately 70% weightage"
+ },
+ {
+  "question": "What are the subsections of the DILR section?",
+  "document": "MBA/CAT 2025 Syllabus PDF.pdf",
+  "must_contain": "DILR section in the CAT syllabus 2025 is Data Interpretation"
+ }
+]

@@ -1,0 +1,9 @@
+{
+  "name": "transformer-twin-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {"dev": "vite", "build": "tsc -b && vite build"},
+  "dependencies": {"@vitejs/plugin-react": "latest", "vite": "latest", "typescript": "latest", "react": "latest", "react-dom": "latest", "react-plotly.js": "latest", "plotly.js-dist-min": "latest"},
+  "devDependencies": {"@types/react": "latest", "@types/react-dom": "latest", "@types/react-plotly.js": "latest"}
+}

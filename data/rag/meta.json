@@ -1,0 +1,1 @@
+{"embedding_model": "sentence-transformers/all-MiniLM-L6-v2", "chunk_words": 120, "overlap_words": 30, "built_at": "2026-10-13T19:20:55.399594+00:00", "document_count": 17, "chunk_count": 9113, "index_backend": "faiss.IndexFlatIP", "fingerprint": "d586d333b10a5c3776240633527e71b431c516ef22e25a459ef8092f8e6b1277"}
