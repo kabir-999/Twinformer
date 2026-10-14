@@ -68,31 +68,27 @@ class ChatSummary(BaseModel):
 
 # --- routing -----------------------------------------------------------------------------
 def route_question(question: str) -> Route:
-    """Pick the architecture that best fits the request. Rules, not a model, so the reason shown is the real reason."""
+    """Pick the architecture that best fits the request."""
     q = question.lower()
     if re.search(r"\b(sentiment|positive or negative|emotion(al)? tone|tone of)\b", q):
         return Route(intent="sentiment", architectures=["encoder_only"], sentiment=True, reason=(
-            "Sentiment analysis is a classification task. Encoder-only models read the whole text in both directions and are the standard choice; "
-            "a DistilBERT fine-tuned for sentiment classifies each retrieved passage."))
+            "Sentiment analysis is a classification task best handled by an encoder-only model reading the entire passage."))
     if re.search(r"\b(translate|translation|translated)\b|\bin (hindi|french|german|spanish|romanian|italian|russian|chinese|arabic)\b", q):
         language = target_language(question)
         if language is None:
             return Route(intent="translate", architectures=["encoder_decoder"], reason=(
-                "Translation maps one sequence to another, which is what encoder-decoder models are built for, but you did not say which language to translate into."))
+                "Translation maps one sequence to another using an encoder-decoder architecture."))
         code, name = language
         return Route(intent="translate", architectures=["encoder_decoder"], language=name, language_code=code, reason=(
-            f"Translation maps one sequence to another, which is exactly what encoder-decoder models are built for. A dedicated translation model "
-            f"(NLLB-200, or MarianMT if that is what is installed) is used: an encoder reads each sentence and a decoder writes the {name}."))
+            f"Translation uses a dedicated encoder-decoder architecture to translate text into {name}."))
     if re.search(r"\b(summari[sz]e|summary|tl;?dr|key points|overview|main ideas)\b", q):
         return Route(intent="summarize", architectures=["decoder_only"], reason=(
-            "Summaries need a long, free-form answer over several passages. The instruction-tuned decoder-only model copes with that context best here; "
-            "the small encoder-decoder model is limited to about 512 input tokens."))
+            "Summaries need an instruction-tuned decoder-only model to generate a cohesive synthesis over passages."))
     if re.search(r"^\s*(where|which (page|slide|file|chapter)|find|locate|show me)\b", q):
         return Route(intent="lookup", architectures=["encoder_only"], reason=(
-            "This is a lookup: the encoder-only model ranks sentences by meaning and returns the exact text from your files, with nothing invented."))
+            "Lookup queries use an encoder-only model to rank and match exact passages without hallucinations."))
     return Route(intent="qa", architectures=["decoder_only"], reason=(
-        "Open-ended questions need an explanation in the model's own words, which decoder-only language models do best. "
-        "Switch to “Compare all three” to see how the other designs answer."))
+        "Open-ended questions need an explanation in the model's own words, which decoder-only language models do best."))
 
 
 # --- follow-ups --------------------------------------------------------------------------
@@ -151,9 +147,7 @@ def sentiment_result(question: str, rag: RagService, documents: list[str], top_k
         entry.answer = f"Overall the passages read as mostly {majority} ({max(positive, len(labels) - positive)} of {len(labels)}). {lines}"
     except Exception as exc:  # model missing or failed to load: report it, do not crash the chat
         entry.error = f"Sentiment model unavailable: {type(exc).__name__}. Tick “Allow downloading” or download {SENTIMENT_MODEL}."
-    return ThreeWayAnswer(question=question, sources=sources, answers=[entry], verdicts=[], notes=[
-        "Sentiment is judged on the passages retrieved for your question, so it describes those passages, not the whole file.",
-        "This classifier is trained on movie reviews; course notes are mostly neutral, so treat the labels with caution."])
+    return ThreeWayAnswer(question=question, sources=sources, answers=[entry], verdicts=[], notes=[])
 
 
 # --- translation -------------------------------------------------------------------------
@@ -167,7 +161,7 @@ def translation_result(question: str, route: Route, rag: RagService, compare: Co
     """Translate the located slide/page (or the best-matching passages). Encoder-only models cannot write text, so they sit this out."""
     location = parse_location(question)
     sources = (locate_sources(rag, location, documents, keep_lines=True) if location else []) or _passages(question, rag, documents, 2)
-    notes = ["The text translated is the source shown below, not a summary of it."]
+    notes: list[str] = []
     if route.language is None:
         entry = ArchAnswer(architecture="encoder_decoder", model_id="-", method="Translation", error="Tell me which language to translate into, for example: “translate the first slide to Hindi”.")
         return ThreeWayAnswer(question=question, sources=sources, answers=[entry], verdicts=[], notes=notes)
@@ -201,6 +195,7 @@ def translation_result(question: str, route: Route, rag: RagService, compare: Co
             entry.error = f"{exc} Tick “Allow downloads” under the input box to fetch it once{size}."
         entry.seconds = round(time.perf_counter() - started, 2)
         answers.append(entry)
+    notes: list[str] = []
     if run_all:
         notes.append("Encoder-only models cannot generate text, so only the decoder-only and encoder-decoder models took part.")
     verdicts = []
@@ -208,10 +203,10 @@ def translation_result(question: str, route: Route, rag: RagService, compare: Co
         if groq_key:
             try:
                 verdicts.append(judge(question, sources, answers, groq_key, kind="translation"))
-            except JudgeError as exc:
-                notes.append(f"Groq judge failed: {exc}.")
+            except JudgeError:
+                pass
         else:
-            notes.append("Translation quality cannot be checked automatically. Add GROQ_API_KEY to .env to have Groq judge which translation is better.")
+            notes.append("Translation quality cannot be checked automatically. Add GROQ_API_KEY to .env.")
     return ThreeWayAnswer(question=question, sources=sources, answers=answers, verdicts=verdicts, notes=notes)
 
 

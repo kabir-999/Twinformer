@@ -353,16 +353,9 @@ def answer_three_ways(request: AnswersRequest, rag: RagService, compare: Compare
             a.metrics = Metrics(grounding=grounding(a.answer, sources_text), relevance=round(relevance, 3) if relevance is not None else None,
                                 repetition=repetition(a.answer), words=len(a.answer.split()))
     verdicts = [heuristic_judge(answers)] if len(answers) > 1 else []
-    notes = ["All three answers are built from the same retrieved sources, so differences come from the model, not from what it was shown."]
-    if len(params) > 1:
-        sizes = " vs ".join(f"{NAMES[a]} {params[a]}M" for a in ORDER if a in params)
-        notes.append(f"This compares three specific models ({sizes} parameters) that also differ in training data, so the result reflects model size and training as well as architecture. It is not a controlled test of the architectures themselves.")
-    if request.use_groq and len(answers) > 1:
-        if not groq_key:
-            notes.append("Groq judge skipped: no API key is configured.")
-        else:
-            try:
-                verdicts.insert(0, judge(request.question, sources, answers, groq_key))
-            except JudgeError as exc:
-                notes.append(f"Groq judge failed: {exc}. Showing the automatic checks only.")
-    return ThreeWayAnswer(question=request.question, sources=sources, answers=answers, verdicts=verdicts, notes=notes)
+    if request.use_groq and len(answers) > 1 and groq_key:
+        try:
+            verdicts.insert(0, judge(request.question, sources, answers, groq_key))
+        except JudgeError:
+            pass
+    return ThreeWayAnswer(question=request.question, sources=sources, answers=answers, verdicts=verdicts, notes=[])

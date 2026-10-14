@@ -226,12 +226,7 @@ class CompareService:
                 self._cache[(architecture, model_id)].warmed = True
             except CompareUnavailable as exc:
                 runs.append(ModelRun(architecture=architecture, model_id=model_id, status="unavailable", error=str(exc)))
-        notes = [
-            "The three models differ in size and training data as well as architecture, so speed and quality differences reflect both. Parameter counts are shown for context.",
-            "Attention weights are the last layer averaged over heads. They show where the model looks, not a complete explanation of its output.",
-            "Models run on the CPU with eager attention so weights can be read; timings are the median of 3 runs after a warm-up, except generation, which is one timed run.",
-            "Generation is greedy (always the most likely next token), so the same input always gives the same output.",
-        ]
+        notes: list[str] = []
         return CompareResult(id=str(uuid4()), created_at=datetime.now(timezone.utc).isoformat(), request=request, runs=runs, notes=notes)
 
     @staticmethod
